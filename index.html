@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Happy Birthday</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: 'Courier New', Courier, monospace;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* --- LAYOUT WRAPPER --- */
+        .page-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 1200px;
+            height: 100%;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* --- LOCK SCREEN INTERFACE --- */
+        #lockScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            z-index: 10;
+            transition: opacity 1s ease-in-out, visibility 1s;
+        }
+
+        #lockScreen.hide {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .lock-left {
+            width: 45%;
+            padding-left: 5%;
+            text-align: left;
+            z-index: 12;
+        }
+
+        .lock-left h2 {
+            font-size: 1.3rem;
+            margin-bottom: 25px;
+            letter-spacing: 2px;
+            color: #ffb3c1;
+            line-height: 1.6;
+        }
+
+        .input-wrapper {
+            position: relative;
+            margin-bottom: 15px;
+            max-width: 300px;
+        }
+
+        .password-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid #333;
+            color: #fff;
+            font-size: 1.5rem;
+            text-align: center;
+            padding: 12px;
+            letter-spacing: 4px;
+            font-family: monospace;
+            outline: none;
+            transition: border-color 0.3s;
+            -webkit-appearance: none;
+            border-radius: 0;
+        }
+
+        .password-input:focus {
+            border-color: #ff69b4;
+        }
+
+        .hint {
+            font-size: 0.75rem;
+            color: #777;
+            margin-top: 8px;
+            text-align: center;
+        }
+
+        .error-msg {
+            color: #ff4d4d;
+            font-size: 0.85rem;
+            margin-top: 10px;
+            min-height: 20px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            text-align: center;
+        }
+
+        /* --- MAIN VIEW CONTENT --- */
+        .container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .container.show {
+            opacity: 1;
+        }
+
+        .message-box {
+            width: 45%;
+            padding-left: 5%;
+            font-size: 1.4rem;
+            line-height: 1.8;
+            font-weight: bold;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 10px;
+            background-color: #fff;
+            animation: blink 0.8s infinite;
+            margin-left: 2px;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        /* --- HEART TREE CANVAS WRAPPER --- */
+        .tree-container {
+            position: absolute;
+            right: 5%;
+            width: 45%;
+            height: 85%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        canvas {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        /* 📱 RESPONSIVE MOBILE VIEWPORT OPTIMIZATIONS */
+        @media (max-width: 768px) {
+            .page-wrapper {
+                flex-direction: column-reverse;
+                justify-content: space-between;
+                padding: 15px;
+            }
+
+            /* Shift Tree to the Top Half on Mobile Phones */
+            .tree-container {
+                position: relative;
+                right: auto;
+                top: 0;
+                width: 100%;
+                height: 50vh;
+                margin-bottom: 10px;
+            }
+
+            /* Interface Bottom Stack Placement */
+            #lockScreen {
+                flex-direction: column-reverse;
+                justify-content: flex-end;
+            }
+
+            .lock-left {
+                width: 100%;
+                padding-left: 0;
+                text-align: center;
+                margin-top: 15px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .lock-left h2 {
+                font-size: 1.1rem;
+                margin-bottom: 15px;
+            }
+
+            .input-wrapper {
+                width: 85%;
+            }
+
+            /* Text Content Box Adjustments */
+            .container {
+                justify-content: center;
+                align-items: flex-start;
+                top: 52vh;
+                height: 45vh;
+            }
+
+            .message-box {
+                width: 90%;
+                padding-left: 0;
+                font-size: 1.15rem;
+                line-height: 1.6;
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-wrapper">
+        <div class="tree-container">
+            <canvas id="treeCanvas"></canvas>
+        </div>
+
+        <div id="lockScreen">
+            <div class="lock-left">
+                <h2>ENTER THE PASSWORD TO UNLOCK<br>YOUR BIRTHDAY GIFT 🎁</h2>
+                <div class="input-wrapper">
+                    <input type="type" inputmode="numeric" id="passwordField" class="password-input" placeholder="••••••••" maxlength="8" autocomplete="off">
+                    <div class="hint">Hint: Your date of birth (DDMMYYYY)</div>
+                </div>
+                <div id="errorField" class="error-msg">Incorrect password, try again ❤️</div>
+            </div>
+        </div>
+
+        <div class="container" id="mainCard">
+            <div class="message-box">
+                <span id="text"></span><span class="cursor">&nbsp;</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const CORRECT_DOB = "27062010"; 
+
+        const lockScreen = document.getElementById('lockScreen');
+        const passwordField = document.getElementById('passwordField');
+        const errorField = document.getElementById('errorField');
+        const mainCard = document.getElementById('mainCard');
+        
+        const canvas = document.getElementById('treeCanvas');
+        const ctx = canvas.getContext('2d');
+        const textElement = document.getElementById('text');
+
+        // Internal high-resolution anchor sizing system
+        const width = 500;
+        const height = 600;
+        canvas.width = width;
+        canvas.height = height;
+
+        const messageLines = [
+            "Hey you 💕\n",
+            "Happy Birthday 🌹\n",
+            "May God bless you 🍀\n",
+            "And give u many happiness 💕_"
+        ];
+
+        const hearts = [];
+        const fallingHearts = []; 
+        let isUnlocked = false;
+
+        const heartColors = [
+            'rgba(255, 105, 180, ', 'rgba(255, 20, 147, ', 'rgba(255, 192, 203, ',
+            'rgba(255, 69, 0, ', 'rgba(255, 165, 0, ', 'rgba(219, 112, 147, '
+        ];
+
+        let mouse = { x: null, y: null };
+
+        function getCanvasMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            
+            // Map window touch actions cleanly across all responsive bounding frames
+            mouse.x = ((clientX - rect.left) / rect.width) * width;
+            mouse.y = ((clientY - rect.top) / rect.height) * height;
+        }
+
+        window.addEventListener('mousemove', getCanvasMousePos);
+        window.addEventListener('touchmove', getCanvasMousePos, { passive: true });
+        
+        const resetMouse = () => { mouse.x = null; mouse.y = null; };
+        window.addEventListener('mouseleave', resetMouse);
+        window.addEventListener('touchend', resetMouse);
+
+        function drawHeart(ctx, x, y, size) {
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.bezierCurveTo(x - size / 2, y - size / 2, x - size, y + size / 3, x, y + size);
+            ctx.bezierCurveTo(x + size, y + size / 3, x + size / 2, y - size / 2, x, y);
+            ctx.fill();
+        }
+
+        function initHearts() {
+            for (let i = 0; i < 460; i++) {
+                const t = Math.PI * 2 * Math.random();
+                const scaleX = 11.0;
+                const scaleY = -10.0; 
+                
+                let hx = 16 * Math.pow(Math.sin(t), 3);
+                let hy = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
+
+                const densityFactor = Math.random();
+                hx *= densityFactor * scaleX;
+                hy *= densityFactor * scaleY;
+
+                const targetX = (width / 2) + hx + (Math.random() * 16 - 8);
+                const targetY = (height / 2 - 70) + hy + (Math.random() * 16 - 8);
+
+                hearts.push({
+                    targetX: targetX,
+                    targetY: targetY,
+                    x: width / 2,
+                    y: height - 210,
+                    size: Math.random() * 6.5 + 5.5,
+                    color: heartColors[Math.floor(Math.random() * heartColors.length)],
+                    alpha: Math.random() * 0.4 + 0.6,
+                    speed: Math.random() * 0.025 + 0.01,
+                    angle: Math.random() * Math.PI,
+                    offsetX: 0,
+                    offsetY: 0,
+                    growth: 0 
+                });
+            }
+        }
+
+        function animateTree() {
+            ctx.clearRect(0, 0, width, height);
+
+            // Draw baseline structural branch core
+            ctx.fillStyle = '#ffb3c1'; 
+            ctx.beginPath();
+            ctx.moveTo(width / 2 - 9, height);
+            ctx.quadraticCurveTo(width / 2 - 6, height - 120, width / 2 - 3, height - 210);
+            ctx.lineTo(width / 2 + 3, height - 210);
+            ctx.quadraticCurveTo(width / 2 + 6, height - 120, width / 2 + 9, height);
+            ctx.closePath();
+            ctx.fill();
+
+            for (let i = 0; i < hearts.length; i++) {
+                const p = hearts[i];
+                p.angle += p.speed;
+
+                if (isUnlocked) {
+                    p.x += (p.targetX - p.x) * 0.05;
+                    p.y += (p.targetY - p.y) * 0.05;
+                    if (p.growth < 1) p.growth += 0.02;
+
+                    // Hover/Touch Rippling Force Array
+                    if (mouse.x !== null && mouse.y !== null) {
+                        const dx = p.x - mouse.x;
+                        const dy = p.y - mouse.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        const maxDist = 75; 
+
+                        if (dist < maxDist) {
+                            const force = (maxDist - dist) / maxDist;
+                            p.offsetX += (dx / dist) * force * 3.5 - p.offsetX * 0.1;
+                            p.offsetY += (dy / dist) * force * 3.5 - p.offsetY * 0.1;
+                        } else {
+                            p.offsetX *= 0.92;
+                            p.offsetY *= 0.92;
+                        }
+                    } else {
+                        p.offsetX *= 0.92;
+                        p.offsetY *= 0.92;
+                    }
+                } else {
+                    p.offsetX = Math.sin(p.angle * 0.5) * 1.5;
+                    p.offsetY = Math.cos(p.angle * 0.5) * 0.8;
+                }
+
+                const dynamicSize = (p.size + Math.sin(p.angle) * 1.2) * (isUnlocked ? p.growth : 0.65);
+                const currentAlpha = p.alpha + Math.sin(p.angle) * 0.08;
+
+                ctx.fillStyle = p.color + currentAlpha + ')';
+                drawHeart(ctx, p.x + p.offsetX, p.y + p.offsetY, dynamicSize);
+
+                // Leaf Shedding Engine
+                if (isUnlocked && p.growth >= 1 && Math.random() < 0.0005 && fallingHearts.length < 20) {
+                    fallingHearts.push({
+                        x: p.x + p.offsetX,
+                        y: p.y + p.offsetY,
+                        size: p.size * 0.65,
+                        color: p.color,
+                        alpha: p.alpha,
+                        velX: -Math.random() * 1.2 - 0.4, 
+                        velY: Math.random() * 0.8 + 0.4,
+                        wobbleSpeed: Math.random() * 0.04 + 0.02,
+                        wobble: Math.random() * Math.PI
+                    });
+                }
+            }
+
+            // Draw drifting loose floating nodes
+            for (let i = fallingHearts.length - 1; i >= 0; i--) {
+                const fh = fallingHearts[i];
+                fh.wobble += fh.wobbleSpeed;
+                fh.x += fh.velX + Math.sin(fh.wobble) * 0.4;
+                fh.y += fh.velY;
+                fh.alpha -= 0.005;
+
+                if (fh.alpha <= 0 || fh.y > height || fh.x < 0) {
+                    fallingHearts.splice(i, 1);
+                } else {
+                    ctx.fillStyle = fh.color + fh.alpha + ')';
+                    drawHeart(ctx, fh.x, fh.y, fh.size);
+                }
+            }
+
+            requestAnimationFrame(animateTree);
+        }
+
+        function startTyping(textArray, charIndex = 0, lineIndex = 0) {
+            if (lineIndex < textArray.length) {
+                let currentLine = textArray[lineIndex];
+                
+                if (charIndex < currentLine.length) {
+                    const char = currentLine.codePointAt(charIndex) > 0xffff ? currentLine.substr(charIndex, 2) : currentLine[charIndex];
+                    textElement.innerHTML += (char === '\n') ? '<br>' : char;
+                    
+                    setTimeout(() => {
+                        startTyping(textArray, charIndex + char.length, lineIndex);
+                    }, 90); 
+                } else {
+                    setTimeout(() => {
+                        startTyping(textArray, 0, lineIndex + 1);
+                    }, 200);
+                }
+            }
+        }
+
+        passwordField.addEventListener('input', () => {
+            errorField.style.opacity = '0';
+            
+            if (passwordField.value.length === 8) {
+                if (passwordField.value === CORRECT_DOB) {
+                    isUnlocked = true; 
+                    lockScreen.classList.add('hide');
+                    mainCard.classList.add('show');
+                    
+                    setTimeout(() => {
+                        startTyping(messageLines);
+                    }, 600);
+                } else {
+                    errorField.style.opacity = '1';
+                    passwordField.value = '';
+                }
+            }
+        });
+
+        initHearts();
+        animateTree();
+    </script>
+</body>
+</html>
