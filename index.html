@@ -12,11 +12,12 @@
         }
 
         body {
-            background-color: #000;
+            background: radial-gradient(circle at center, #1a0510 0%, #000000 80%);
             color: #fff;
             font-family: 'Courier New', Courier, monospace;
             overflow: hidden;
             height: 100vh;
+            height: 100dvh;
             width: 100vw;
             display: flex;
             align-items: center;
@@ -32,6 +33,45 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            overflow: hidden;
+        }
+
+        /* --- ROMANTIC AMBIENT BACKGROUND EFFECTS --- */
+        .ambient-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .floating-heart {
+            position: absolute;
+            bottom: -20px;
+            color: rgba(255, 105, 180, 0.25);
+            font-size: 1.2rem;
+            animation: floatUp 7s linear infinite;
+            filter: drop-shadow(0 0 5px rgba(255, 20, 147, 0.3));
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) translateX(0) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.7;
+            }
+            90% {
+                opacity: 0.4;
+            }
+            100% {
+                transform: translateY(-105dvh) translateX(var(--wobble)) rotate(360deg);
+                opacity: 0;
+            }
         }
 
         /* --- LOCK SCREEN INTERFACE --- */
@@ -112,7 +152,7 @@
             transition: opacity 0.3s;
         }
 
-        /* --- MAIN VIEW GRID --- */
+        /* --- MAIN VIEW GRID (MOBILE OPTIMIZED) --- */
         .container {
             position: absolute;
             top: 0;
@@ -126,21 +166,32 @@
             opacity: 0;
             transition: opacity 1s ease-in-out;
             z-index: 5;
-            padding: 15px;
+            padding: 10px 15px;
         }
 
         .container.show {
             opacity: 1;
         }
 
-        /* Tree occupies top portion safely */
+        /* High precision mobile layout ratios */
         .tree-container {
             width: 100%;
-            height: 45vh; 
+            height: 40dvh; 
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-top: 10px;
+            margin-top: 5px;
+            position: relative;
+        }
+
+        .tree-container::after {
+            content: '';
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255, 105, 180, 0.12) 0%, rgba(0,0,0,0) 70%);
+            z-index: -1;
+            pointer-events: none;
         }
 
         canvas {
@@ -149,19 +200,23 @@
             object-fit: contain;
         }
 
-        /* Text box occupies bottom portion beautifully */
+        /* Extended box wrapper height to dynamically guard text lines */
         .message-box {
             width: 100%;
             max-width: 450px;
-            height: 48vh;
-            padding: 10px 15px;
-            font-size: 0.95rem;
-            line-height: 1.6;
+            height: 52dvh;
+            padding: 10px 12px 30px 12px;
+            font-size: 0.98rem;
+            line-height: 1.65;
             font-weight: bold;
             text-align: left;
             word-wrap: break-word;
             overflow-y: auto; 
+            scroll-behavior: smooth;
             scrollbar-width: none; 
+            position: relative;
+            z-index: 6;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
         }
 
         .message-box::-webkit-scrollbar {
@@ -171,7 +226,7 @@
         .cursor {
             display: inline-block;
             width: 10px;
-            background-color: #fff;
+            background-color: #ff69b4;
             animation: blink 0.8s infinite;
             margin-left: 2px;
         }
@@ -191,7 +246,7 @@
 
             .tree-container {
                 width: 50%;
-                height: 85vh;
+                height: 85dvh;
                 margin-top: 0;
             }
 
@@ -207,6 +262,9 @@
 <body>
 
     <div class="page-wrapper">
+        <!-- Ambient Floating Hearts Overlay -->
+        <div class="ambient-bg" id="ambientBg"></div>
+
         <!-- Lock Screen Screen Component -->
         <div id="lockScreen">
             <div class="lock-content">
@@ -219,15 +277,13 @@
             </div>
         </div>
 
-        <!-- Main Dynamic View Split Content -->
+        <!-- Main Workspace Components -->
         <div class="container" id="mainCard">
-            <!-- Tree Canvas on Top Half -->
             <div class="tree-container">
                 <canvas id="treeCanvas"></canvas>
             </div>
 
-            <!-- Typed Text Content on Bottom Half -->
-            <div class="message-box">
+            <div class="message-box" id="messageBox">
                 <span id="text"></span><span class="cursor">&nbsp;</span>
             </div>
         </div>
@@ -240,26 +296,31 @@
         const passwordField = document.getElementById('passwordField');
         const errorField = document.getElementById('errorField');
         const mainCard = document.getElementById('mainCard');
+        const ambientBg = document.getElementById('ambientBg');
         
         const canvas = document.getElementById('treeCanvas');
         const ctx = canvas.getContext('2d');
         const textElement = document.getElementById('text');
+        const messageBox = document.getElementById('messageBox');
 
-        // High resolution anchor configuration
         const width = 500;
         const height = 600;
         canvas.width = width;
         canvas.height = height;
 
-        // Custom paragraph array for typing animation
+        // Custom code array housing the updated multi-emoji paragraph script
         const messageLines = [
-            "Happy birthday Aanya, \n",
-            "On your special day , I just wanted to take a moment to wish you the best and the most magical birthday ever . \n",
-            "Hope your day goes The way you desire . \n",
-            "I've always cherished our friendship more than anything else . \n",
-            "Hope you achieve great heights in your life , God bless you with most abundance, prosperity and growth \n",
-            "Keep rising and shining \n",
-            "Happy birthday once again ."
+            "Happiest Birthday, Aanya Arora! 🎂🎉✨\n\n",
+            "Wishing you a day filled with endless happiness, laughter, and pure joy! 🌸💫\n\n",
+            "You are genuinely the most beautiful soul and a truly great person by heart ❤️, aur sach kahu toh, mere pass words nahi hai batane ke liye that how much you are special to me. 🥰💞\n\n",
+            "I am incredibly lucky and absolutely delighted to have you in my life... honestly, having you as a friend has been one of the absolute best things that has ever happened to me! 🪐✨\n\n",
+            "On your special day, I just want to wish you the most magical birthday ever—exactly the way your heart desires. 🌟🔮 May that priceless, beautiful smile of yours never fade away. 😊💕\n\n",
+            "I’ve always cherished our bonding more than anything else in this world, aur tumse baat kiye bina mera toh din bhi poora nahi hota. 🥺⏳\n\n",
+            "Promise, main humesha tumhare sath hoon, holding your hand tight through all your goods and bads... 🤝🌹\n\n",
+            "Waise, mujhe tumhe thoda tease karne ki aur tumhari sweet baatein sunne ki pyaari si aadat ho gayi hai, so get used to it because you are permanently stuck with me now! 😜💞\n\n",
+            "May God bless you, protect you, and serve you with everything you ever dream of, with unmatched abundance, success, and growth. 👑🚀\n\n",
+            "Keep rising, shining, and illuminating my entire world just by being in it. 🕊️✨\n\n",
+            "With endless love, deepest respect, and a heart full of gratitude... Happy Birthday once again, my absolute favorite human! ❤️🌹🔒"
         ];
 
         const hearts = [];
@@ -288,6 +349,21 @@
         const resetMouse = () => { mouse.x = null; mouse.y = null; };
         window.addEventListener('mouseleave', resetMouse);
         window.addEventListener('touchend', resetMouse);
+
+        /* Background Spawning Processor for Ambient Floating Effects */
+        function spawnAmbientBackgroundHeart() {
+            if(!isUnlocked) return;
+            const heart = document.createElement('div');
+            heart.classList.add('floating-heart');
+            heart.innerHTML = '❤️';
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.fontSize = (Math.random() * 12 + 10) + 'px';
+            heart.style.animationDuration = (Math.random() * 4 + 5) + 's';
+            heart.style.setProperty('--wobble', (Math.random() * 80 - 40) + 'px');
+            
+            ambientBg.appendChild(heart);
+            setTimeout(() => { heart.remove(); }, 7000);
+        }
 
         function drawHeart(ctx, x, y, size) {
             ctx.beginPath();
@@ -424,13 +500,16 @@
                     const char = currentLine.codePointAt(charIndex) > 0xffff ? currentLine.substr(charIndex, 2) : currentLine[charIndex];
                     textElement.innerHTML += (char === '\n') ? '<br>' : char;
                     
+                    // Hands-free custom scroll tracker tracking cursor line drops
+                    messageBox.scrollTop = messageBox.scrollHeight;
+
                     setTimeout(() => {
                         startTyping(textArray, charIndex + char.length, lineIndex);
-                    }, 60); 
+                    }, 55); 
                 } else {
                     setTimeout(() => {
                         startTyping(textArray, 0, lineIndex + 1);
-                    }, 250);
+                    }, 400);
                 }
             }
         }
@@ -443,6 +522,9 @@
                     isUnlocked = true; 
                     lockScreen.classList.add('hide');
                     mainCard.classList.add('show');
+                    
+                    // Fire off background floating engine ticks
+                    setInterval(spawnAmbientBackgroundHeart, 400);
                     
                     setTimeout(() => {
                         startTyping(messageLines);
